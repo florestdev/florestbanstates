@@ -1,0 +1,9 @@
+banned_counties:
+  - '...'
+  - '...'
+
+whitelist_players:
+  - 'Notch'
+  - 'SomeAdminFromBannedRegion'
+
+your_country_banned: "Hey, {user}! Your country was banned by FlorestBanStates."

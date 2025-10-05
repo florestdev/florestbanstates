@@ -1,0 +1,8 @@
+name: FlorestBanStates
+version: '1.0'
+main: ru.florestdev.florestBanStates.FlorestBanStates
+api-version: '1.21'
+prefix: FlorestBanStates
+load: STARTUP
+authors: [ FlorestDev ]
+description: This is a plugin for ban countries.
