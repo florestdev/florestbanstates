@@ -7,3 +7,7 @@ whitelist_players:
   - 'SomeAdminFromBannedRegion'
 
 your_country_banned: "Hey, {user}! Your country was banned by FlorestBanStates."
+
+unbanned_regions:
+  - 'Donetsk, for example.'
+  - 'other example.'

@@ -37,13 +37,18 @@ public class Client {
             // Проверяем статус ответа API
             if (jsonNode.get("status").asText().equals("success")) {
                 String countryCode = jsonNode.get("countryCode").asText();
+                String regionName = jsonNode.get("regionName").asText();
                 plugin.getLogger().info("%s logged in: %s. Code of country: %s".formatted(playerName, ip, countryCode));
                 for (String restrictedCode : plugin.getConfig().getStringList("banned_counties")) {
                     if (restrictedCode.equalsIgnoreCase(countryCode)) {
-                        if (!plugin.getConfig().getStringList("whitelist_players").contains(playerName)) {
-                            return true;
-                        } else {
+                        if (plugin.getConfig().getStringList("unbanned_regions").contains(regionName)) {
                             return false;
+                        } else {
+                            if (!plugin.getConfig().getStringList("whitelist_players").contains(playerName)) {
+                                return true;
+                            } else {
+                                return false;
+                            }
                         }
                     }
                 }

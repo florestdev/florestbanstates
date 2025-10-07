@@ -1,5 +1,5 @@
 name: FlorestBanStates
-version: '1.0'
+version: '1.1'
 main: ru.florestdev.florestBanStates.FlorestBanStates
 api-version: '1.21'
 prefix: FlorestBanStates
