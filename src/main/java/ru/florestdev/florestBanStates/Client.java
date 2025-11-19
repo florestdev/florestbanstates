@@ -1,62 +1,62 @@
 package ru.florestdev.florestBanStates;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.bukkit.plugin.Plugin;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Client {
-    public final Plugin plugin;
-    public final HttpClient httpClient;
-    public Client(Plugin plugin) {
-        this.plugin = plugin;
-        this.httpClient = HttpClient.newHttpClient();
-    }
 
-    public boolean make_req(String ip, String playerName) throws IOException, InterruptedException {
-        String url = "http://ip-api.com/json/" + ip + "?lang=ru";
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .GET()
-                .header("Accept", "application/json")
-                .build();
+    private final Map<String, GeoInfo> cache = new ConcurrentHashMap<>();
 
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    public GeoInfo getInfo(String ip) {
 
-        if (response.statusCode() != 200) {
-            plugin.getLogger().severe("We can't send request to ip-api.com!");
-            return false;
-        } else {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode jsonNode = mapper.readTree(response.body());
-
-            // Проверяем статус ответа API
-            if (jsonNode.get("status").asText().equals("success")) {
-                String countryCode = jsonNode.get("countryCode").asText();
-                String regionName = jsonNode.get("regionName").asText();
-                plugin.getLogger().info("%s logged in: %s. Code of country: %s".formatted(playerName, ip, countryCode));
-                for (String restrictedCode : plugin.getConfig().getStringList("banned_counties")) {
-                    if (restrictedCode.equalsIgnoreCase(countryCode)) {
-                        if (plugin.getConfig().getStringList("unbanned_regions").contains(regionName)) {
-                            return false;
-                        } else {
-                            if (!plugin.getConfig().getStringList("whitelist_players").contains(playerName)) {
-                                return true;
-                            } else {
-                                return false;
-                            }
-                        }
-                    }
-                }
-            } else {
-                return false;
-            }
+        // cached?
+        if (cache.containsKey(ip)) {
+            FlorestBanStates.getInstance().getLogger().info("[FBS] Cache hit for " + ip);
+            return cache.get(ip);
         }
-        return false;
+
+        FlorestBanStates.getInstance().getLogger().info("[FBS] Cache miss → requesting ipwho.is for " + ip);
+
+        try {
+
+            URL url = new URL("https://ipwho.is/" + ip);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setConnectTimeout(3000);
+            con.setReadTimeout(3000);
+            con.setRequestProperty("User-Agent", "FlorestBanStates");
+
+            if (con.getResponseCode() != 200) {
+                return null;
+            }
+
+            InputStreamReader reader = new InputStreamReader(con.getInputStream());
+            JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
+
+            boolean success = json.get("success").getAsBoolean();
+            if (!success) return null;
+
+            String countryCode = json.get("country_code").getAsString();
+            String region = json.get("region").getAsString();
+
+            GeoInfo info = new GeoInfo(countryCode, region);
+            cache.put(ip, info);
+
+            return info;
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        }
     }
 
+    public void clearCache() {
+        cache.clear();
+    }
 }
