@@ -1,8 +1,20 @@
 name: FlorestBanStates
-version: '1.1'
+version: '2.0'
 main: ru.florestdev.florestBanStates.FlorestBanStates
 api-version: '1.21'
 prefix: FlorestBanStates
 load: STARTUP
 authors: [ FlorestDev ]
 description: This is a plugin for ban countries.
+
+commands:
+  fbs:
+    description: FlorestBanStates administration command
+    usage: /fbs reload
+    permission: florestbanstates.admin
+    permission-message: "§cYou do not have permission to use this command."
+
+permissions:
+  florestbanstates.admin:
+    description: Allows using /fbs reload
+    default: op
